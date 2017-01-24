@@ -1,58 +1,65 @@
-n, e = map(int, raw_input().strip().split())
-direct = {}
-reverse= {}
-flag = True
-output = []
-sequence = []*e
-if n > e:
-	for i in xrange(e):
-		a = raw_input()
-	a = None
-	flag = False
-else:
-	for i in xrange(e):
-		a, b = raw_input().strip().split()
-		sequence.append(a)
-		if a in direct:
-			direct[a].append(b)
-		else:
-			direct[a] = [b]
+class Graph(object):
+	"""docstring for Graph"""
+	def __init__(self, vertices):
+		self.vertices = vertices
+		graph = dict()
+		for i in xrange(1, vertices+1):
+			graph[i] = []
+		self.graph = graph
 
-		if b in reverse:
-			reverse[b].append(a)
-		else:
-			reverse[b] = [a]
-	print direct
-	print reverse
-	for i in xrange(1,n+1):
-		city = str(i)
-		if city not in direct:
-			if city not in reverse:
-				flag = False
-				break
-			cities = reverse[city]
-			for each_city in cities:
-				if len(direct[each_city]) > 1:
-					direct[each_city].remove(city)
-					direct[city] = [each_city]
-					break
+	def add_edge(self,a,b):
+		self.graph[a].append(b)
+		self.graph[b].append(a)
+
+	def eulerPath(self):
+		g = self.graph
+		odd = [k for k, v  in g.iteritems() if len(v)%2 == 1]
+		if len(odd) == 0 :
+			odd = [g.keys()[0]]
+		elif len(odd) == 1 or len(odd) > 2 :
+			return None
+		path = []
+		stack = [odd[-1]]
+		while stack:
+			u = stack[-1]
+			if g[u]:
+				v = g[u][0]
+				del g[u][0]
+				del g[v][g[v].index(u)]
+				stack.append(v)
 			else:
-				flag = False
-				break
-	# print "======"
-	# print direct
-	# print "======"
-	# create proper output
-	# for _ in create_output:
-	# 	pass
+				path.append(stack.pop())
+		return path
 
-			
-if flag:
-	print "YES"
-	for k,v in direct.iteritems():
-		for each_v in v:
-			print "%s %s" % (k, each_v)
-	# for i in sequence:
-	# 	print "%s %s" % (i, direct[i])
+n, e = map(int, raw_input().strip().split())
+g = Graph(n)
+
+u = []
+v = []
+
+for i in xrange(e):
+	a, b = map(int, raw_input().strip().split())
+	g.add_edge(a,b)
+	u.append(a)
+	v.append(b)
+	
+ans = g.eulerPath()
+
+if ans is None:
+	print 'NO'
 else:
-	print "NO"
+	if len(ans) == (e+1) and ans[0] == ans[-1]:
+		print "YES"
+		temp_dict = {}
+		for i in xrange(len(ans)-1,0,-1):
+			if ans[i] in temp_dict:
+				temp_dict[ans[i]][ans[i-1]] = True
+			else:
+				temp_dict[ans[i]] = {ans[i-1]:True}
+		for i in xrange(e):
+			if u[i] in temp_dict and v[i] in temp_dict[u[i]]:
+				print u[i] , v[i]
+			else:
+				print v[i], u[i]
+	else:
+		print "NO"
